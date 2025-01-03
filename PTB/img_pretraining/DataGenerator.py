@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from tensorflow import keras
 from cv2 import imread,resize
@@ -59,7 +60,7 @@ class DataGenerator(keras.utils.PyDataset):
         
         for i, idx in enumerate(batch_indices):
             # Load and preprocess image
-            img = imread(self.IMAGE_PATH+self.img_filenames[idx],0)  # Read image
+            img = imread(os.path.join(self.IMAGE_PATH, self.img_filenames[idx]),0)  # Read image
             img = resize(img, self.size)  # Resize to target size
             img = img / 255.0  # Normalize to [0, 1]
             

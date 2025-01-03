@@ -1,15 +1,19 @@
 from flask import Flask, request, jsonify
 from werkzeug.utils import secure_filename
+import cv2
 import os
 from flask_cors import CORS
 import base64
+
+from PTB.ptb import predict_PTB
+from segmentation_model.segment import segment
 
 
 app = Flask(__name__)
 
 CORS(app)
 # Configurer le dossier de stockage des fichiers uploadés
-UPLOAD_FOLDER = './uploads'
+UPLOAD_FOLDER = os.path.abspath("uploads") 
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
@@ -36,11 +40,15 @@ def upload_image():
     image.save(filepath)
 
     # Exemple : retourner une réponse avec des métadonnées de l'image
-    loss = 0.5  # Actual loss value
-    accuracy = 0.8  # Actual accuracy value
-    with open(os.path.join(app.config['UPLOAD_FOLDER'], 'res.jpg'), 'rb') as img_file:
-        image_data = base64.b64encode(img_file.read()).decode('utf-8')  # Encode image to base64
-    return jsonify({"message": "C e personne a ete detectee", "filename": filename, "loss": loss, "accuracy": accuracy, "image": image_data}), 200
+    loss,accuracy = predict_PTB(app.config['UPLOAD_FOLDER'],[filename])
+
+    # Encode the image into a PNG format using cv2.imencode
+    image_array = segment(app.config['UPLOAD_FOLDER'],[filename])
+    _, buffer = cv2.imencode('.png', image_array)
+
+    # Convert the buffer to a Base64 string
+    image_data = base64.b64encode(buffer).decode('utf-8')
+    return jsonify({"message": "C e personne a ete detectee", "filename": filename, "loss": round(float(loss),2), "accuracy": round(float(accuracy),2), "image": image_data}), 200
 
 if __name__ == "__main__":
     app.run(debug=True)

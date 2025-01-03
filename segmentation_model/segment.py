@@ -22,13 +22,12 @@ def segment(IMG_PATH,path=[]):
     pred = (np.squeeze(model.predict(img,verbose=0))*255).astype(np.uint8)
     img = (np.squeeze(img) * 255).astype(np.uint8)
 
-    image = cv2.imread(IMG_PATH+path[0])
+    image = cv2.imread(os.path.join(IMG_PATH, path[0]))
 
     height, width, _ = image.shape
 
     resized_mask = cv2.resize(pred, (width, height), interpolation=cv2.INTER_NEAREST)
 
-    print(resized_mask.shape)
 
     return get_colored_mask(image,resized_mask,color = [255,157,61])
 
